@@ -12,6 +12,7 @@ BuiltWithAI (Vercel Projects Hub) is a fast, responsive web application designed
 - Provide real-time client-side search by project name and filtering by framework.
 - Display a guided configuration state when `VERCEL_TOKEN` is not yet configured, explaining step-by-step how to add the token locally or in the Vercel dashboard.
 - Responsive modern UI styled with dark-mode elegance tailored to Vercel's design language.
+- Automatically exclude the 'builtwithai' project (case-insensitive, matching 'builtwithai' and 'built-with-ai') from the list so the hub does not list itself.
 - Strictly target Vercel for hosting and deployment.
 
 ## 3. User Experience
@@ -47,6 +48,7 @@ BuiltWithAI (Vercel Projects Hub) is a fast, responsive web application designed
 - **Vercel Service (`lib/vercel.ts`)**:
   - `fetchVercelProjects(token: string, teamId?: string)`: Communicates with Vercel API.
   - Resolves live URLs: prioritizes `targets.production.alias[0]`, then `targets.production.url`, prefixing `https://`.
+  - Filters out the 'builtwithai' project (case-insensitive, matching 'builtwithai' and 'built-with-ai') from the final project list.
   - Handles HTTP status codes (200, 401 Unauthorized, 403 Forbidden, rate limits) with clear error messaging.
 - **Internal API Route (`app/api/projects/route.ts`)**:
   - Exposes `GET /api/projects`.

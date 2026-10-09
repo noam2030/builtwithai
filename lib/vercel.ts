@@ -123,6 +123,15 @@ export function normalizeVercelProject(project: VercelProject): ProjectDisplayIt
 }
 
 /**
+ * Checks whether a project should be excluded (specifically 'builtwithai' and 'built-with-ai').
+ */
+export function isExcludedProject(projectName: string): boolean {
+  if (!projectName) return false;
+  const normalized = projectName.trim().toLowerCase().replace(/[-_]/g, "");
+  return normalized === "builtwithai";
+}
+
+/**
  * Fetches projects from the Vercel REST API
  */
 export async function fetchVercelProjects(
@@ -178,6 +187,7 @@ export async function fetchVercelProjects(
   const rawProjects: VercelProject[] = data.projects || [];
 
   return rawProjects
+    .filter((project) => !isExcludedProject(project.name))
     .map(normalizeVercelProject)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }

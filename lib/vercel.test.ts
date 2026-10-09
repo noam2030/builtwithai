@@ -4,6 +4,7 @@ import {
   resolveGitRepo,
   normalizeVercelProject,
   fetchVercelProjects,
+  isExcludedProject,
 } from "./vercel";
 import { VercelProject } from "./types";
 
@@ -27,6 +28,22 @@ describe("vercel lib utilities", () => {
       repo: "user/portfolio-app",
     },
   };
+
+  describe("isExcludedProject", () => {
+    it("identifies builtwithai and built-with-ai as excluded", () => {
+      expect(isExcludedProject("builtwithai")).toBe(true);
+      expect(isExcludedProject("built-with-ai")).toBe(true);
+      expect(isExcludedProject("BuiltWithAI")).toBe(true);
+      expect(isExcludedProject("built_with_ai")).toBe(true);
+    });
+
+    it("does not exclude other projects including buildwithai", () => {
+      expect(isExcludedProject("buildwithai")).toBe(false);
+      expect(isExcludedProject("portfolio-app")).toBe(false);
+      expect(isExcludedProject("my-cool-site")).toBe(false);
+      expect(isExcludedProject("")).toBe(false);
+    });
+  });
 
   describe("resolveWebUrl", () => {
     it("prefers custom domain over .vercel.app alias", () => {
@@ -135,19 +152,33 @@ describe("vercel lib utilities", () => {
       );
     });
 
-    it("fetches and normalizes projects successfully", async () => {
+    it("fetches and normalizes projects successfully, excluding builtwithai", async () => {
+      const builtWithAiProject: VercelProject = {
+        id: "prj_hub",
+        name: "builtwithai",
+        createdAt: 1700000000000,
+        updatedAt: 1700000600000,
+      };
+
+      const otherProject: VercelProject = {
+        id: "prj_other",
+        name: "buildwithai",
+        createdAt: 1700000000000,
+        updatedAt: 1700000400000,
+      };
+
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => ({
-          projects: [mockProject],
+          projects: [mockProject, builtWithAiProject, otherProject],
         }),
       } as any);
 
       const projects = await fetchVercelProjects("valid_token", "team_123");
-      expect(projects).toHaveLength(1);
-      expect(projects[0].name).toBe("portfolio-app");
-      expect(projects[0].webUrl).toBe("https://portfolio.example.com");
+      // builtwithai should be filtered out; mockProject and otherProject remain
+      expect(projects).toHaveLength(2);
+      expect(projects.map((p) => p.name)).toEqual(["portfolio-app", "buildwithai"]);
     });
   });
 });
