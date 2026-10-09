@@ -5,3 +5,4 @@
 5. exlude 'buildwithai' project form the list.
 6. only builtwithai is exluded
 7. confirm
+8. merge
